@@ -2,6 +2,7 @@ import time
 from typing import Dict
 import jwt
 from decouple import config
+from passlib.context import CryptoContext
 
 JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
@@ -29,3 +30,16 @@ def decodeJWT(token: str):
         return decoded_token if decoded_token["expires"] >= time.time() else None
     except:
         return {}
+
+
+pwd_context = CryptoContext(schemes=['bycrypt'], deprecated="auto")
+
+
+class Hasher:
+    @staticmethod
+    def hash_password(plain_password: str):
+        return pwd_context.hash(plain_password)
+
+    @staticmethod
+    def verify_password(plain_password, hash_password):
+        return pwd_context.verify(plain_password, hash_password)
