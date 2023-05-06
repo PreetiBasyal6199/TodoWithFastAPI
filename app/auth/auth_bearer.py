@@ -2,7 +2,7 @@ import time
 from typing import Dict
 import jwt
 from decouple import config
-from passlib.context import CryptoContext
+from passlib.context import CryptContext
 
 JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
@@ -32,7 +32,7 @@ def decodeJWT(token: str):
         return {}
 
 
-pwd_context = CryptoContext(schemes=['bycrypt'], deprecated="auto")
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
 
 class Hasher:
