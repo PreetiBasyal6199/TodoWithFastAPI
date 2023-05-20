@@ -1,10 +1,13 @@
-from .models import UserPostSchema, UserLoginSchema
-from app.auth.auth_bearer import signJWT, decodeJWT, Hasher
+import jwt
+
+from .models import UserPostSchema, UserLoginSchema, TodoPostSchema
+from app.auth.auth_bearer import signJWT, decodeJWT, Hasher, get_user_id
+from app.auth.auth_handler import JWTBearer
 # from main import app
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
-from .database import user_collection
-from .helpers import userhelper
+from .database import user_collection, todo_collection
+from .helpers import userhelper, todohelper
 
 router = APIRouter()
 
@@ -28,3 +31,12 @@ def login_user(user: UserLoginSchema = Body(...)):
         return {
             "detail": "Invalid Credentials."
         }
+
+
+@router.post("/todo/", dependencies=[Depends(JWTBearer())], tags=["Todos"])
+def create_todo(todo: TodoPostSchema = Body(...), token: str = Depends(JWTBearer())):
+    todo_obj = jsonable_encoder(todo)
+    user_id = get_user_id(token=token)
+    todo_obj['user_id'] = user_id
+    todo_collection.insert_one(todo_obj)
+    return todohelper(todo_obj)

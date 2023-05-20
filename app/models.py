@@ -28,3 +28,9 @@ class UserLoginSchema(BaseModel):
             }
         }
 
+
+class TodoPostSchema(BaseModel):
+    title: str = Field(...)
+    is_completed: bool = Field(default=False)
+
+
