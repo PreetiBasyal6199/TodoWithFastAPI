@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
-
+from typing import Optional
 
 class UserPostSchema(BaseModel):
     email: EmailStr = Field(...)
@@ -34,3 +34,6 @@ class TodoPostSchema(BaseModel):
     is_completed: bool = Field(default=False)
 
 
+class TodoUpdateSchema(BaseModel):
+    title: Optional[str]
+    is_completed: Optional[bool]
