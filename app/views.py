@@ -1,10 +1,12 @@
+import json
+
 import jwt
 
-from .models import UserPostSchema, UserLoginSchema, TodoPostSchema
+from .models import UserPostSchema, UserLoginSchema, TodoPostSchema, TodoUpdateSchema
 from app.auth.auth_bearer import signJWT, decodeJWT, Hasher, get_user_id
 from app.auth.auth_handler import JWTBearer
 from bson import ObjectId
-# from main import app
+from fastapi.responses import JSONResponse  # from main import app
 from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from .database import user_collection, todo_collection
@@ -50,3 +52,13 @@ def my_todos(token: str = Depends(JWTBearer())):
     if my_todos:
         return todohelper(my_todos)
     return {}
+
+
+@router.patch("/todo/{todo_id}/")
+def update_todo(todo_id: str, todo: TodoUpdateSchema = Body(None), token: str = Depends(JWTBearer())):
+    todo_obj = todo_collection.find_one({"_id": ObjectId(todo_id)})
+    user_id = get_user_id(token)
+    if todo_obj["user_id"] != user_id:
+        raise ValueError("You are not allowed to update this todo.")
+    updated_todo = todo_collection.update_one({"_id": ObjectId(todo_id)}, {"$set": todo.dict()})
+    return JSONResponse({"message": "Successfully updated "})
