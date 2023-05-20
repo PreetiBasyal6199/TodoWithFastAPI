@@ -3,6 +3,7 @@ import jwt
 from .models import UserPostSchema, UserLoginSchema, TodoPostSchema
 from app.auth.auth_bearer import signJWT, decodeJWT, Hasher, get_user_id
 from app.auth.auth_handler import JWTBearer
+from bson import ObjectId
 # from main import app
 from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
@@ -40,3 +41,12 @@ def create_todo(todo: TodoPostSchema = Body(...), token: str = Depends(JWTBearer
     todo_obj['user_id'] = user_id
     todo_collection.insert_one(todo_obj)
     return todohelper(todo_obj)
+
+
+@router.get("/todos/", dependencies=[Depends(JWTBearer())], tags=["Todos"])
+def my_todos(token: str = Depends(JWTBearer())):
+    user_id = get_user_id(token)
+    my_todos = todo_collection.find_one({"user_id": ObjectId(user_id)})
+    if my_todos:
+        return todohelper(my_todos)
+    return {}
