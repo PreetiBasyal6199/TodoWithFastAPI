@@ -3,9 +3,11 @@ from typing import Dict
 import jwt
 from decouple import config
 from passlib.context import CryptContext
+from app.database import user_collection
 
 JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def token_response(token: str):
@@ -17,17 +19,28 @@ def token_response(token: str):
 # Function used for signing the JWT String
 def signJWT(userEmail: str):
     payload = {
-        'user_id': userEmail,
-        'expires_at': time.time() + 600
+        "email": userEmail,
+        "expires_at": time.time() + 600
     }
-    token = jwt.encode(payload=payload, algorithm=JWT_ALGORITHM, key=JWT_SECRET)
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token_response(token)
 
 
 def decodeJWT(token: str):
     try:
         decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        return decoded_token if decoded_token["expires"] >= time.time() else None
+        return decoded_token if decoded_token["expires_at"] >= time.time() else None
+    except:
+        return {}
+
+
+# Function to fetch the user_id
+def get_user_id(token: str):
+    try:
+        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        email = decoded_token.get("email")
+        user_obj = user_collection.find_one({"email": email})
+        return user_obj['_id']
     except:
         return {}
 
