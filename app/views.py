@@ -7,7 +7,7 @@ from app.auth.auth_bearer import signJWT, decodeJWT, Hasher, get_user_id
 from app.auth.auth_handler import JWTBearer
 from bson import ObjectId
 from fastapi.responses import JSONResponse  # from main import app
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from .database import user_collection, todo_collection
 from .helpers import userhelper, todohelper
@@ -69,6 +69,6 @@ def delete_todo(todo_id: str, token: str = Depends(JWTBearer())):
     todo_obj = todo_collection.find_one({"_id": ObjectId(todo_id)})
     user_id = get_user_id(token)
     if todo_obj["user_id"] != user_id:
-        raise ValueError("You are not allowed to update this todo.")
-    updated_todo = todo_collection.deleteone({"_id": ObjectId(todo_id)})
-    return JSONResponse({"message": "Todo deleted"})
+        raise HTTPException(403, detail="You are not allowed to update this todo.")
+    todo_collection.delete_one({"_id": ObjectId(todo_id)})
+    return JSONResponse({"message": "Todo deleted"}, 204)
