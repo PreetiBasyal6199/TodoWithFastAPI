@@ -59,9 +59,10 @@ def update_todo(todo_id: str, todo: TodoUpdateSchema = Body(None), token: str = 
     todo_obj = todo_collection.find_one({"_id": ObjectId(todo_id)})
     user_id = get_user_id(token)
     if todo_obj["user_id"] != user_id:
-        raise ValueError("You are not allowed to update this todo.")
-    updated_todo = todo_collection.update_one({"_id": ObjectId(todo_id)}, {"$set": todo.dict()})
-    return JSONResponse({"message": "Successfully updated "})
+        raise HTTPException(403, detail="You are not allowed to update this todo.")
+    todo_collection.update_one({"_id": ObjectId(todo_id)}, {"$set": todo.dict()})
+    updated_todo = todo_collection.find_one({"_id": ObjectId(todo_id)})
+    return todohelper(updated_todo)
 
 
 @router.delete("/todo/{todo_id}/")

@@ -10,6 +10,6 @@ def userhelper(user):
 def todohelper(todo):
     return {
         'id': str(todo["_id"]),
-        'title': str(todo['title']),
-        'user_id': str(todo["user_id"])
+        'title': todo['title'],
+        'is_completed': todo["is_completed"]
     }
